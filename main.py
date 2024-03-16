@@ -60,7 +60,7 @@ def main():
     cat_name = soup.find("h1", class_="category-name").text.strip()
     products_data = product_info(soup)
     json_file_name = f"rawdata/{cat_name}.json"
-    # dump_json(products_data, json_file_name)
+    dump_json(products_data, json_file_name)
     csv_file_name = f"rawdata/{cat_name}.csv"
     dump_csv(products_data, csv_file_name)
 
