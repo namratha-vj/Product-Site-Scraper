@@ -7,6 +7,3 @@ response = requests.get(url)
 html = response.content
 soup = BeautifulSoup(html, 'html.parser')
 print(soup.prettify())
-imgs = soup.find_all("img")
-print(imgs)
-print("sdfaf")
