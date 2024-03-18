@@ -61,7 +61,7 @@ def html_to_clean_markdown(html_text):
 def llm_output(cleaned_markdown):
   client = openai.OpenAI(
     base_url = "https://api.endpoints.anyscale.com/v1",
-    api_key = API_KEY)
+    api_key = api_key)
 
   # Note: not all arguments are currently supported and will be ignored by the backend.
   chat_completion = client.chat.completions.create(
