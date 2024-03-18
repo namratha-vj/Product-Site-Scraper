@@ -53,7 +53,7 @@ def html_to_clean_markdown(html_text):
     cleaned_markdown = cleaned_markdown.strip('\n')
     return cleaned_markdown
 
-import openai
+
 def llm_output(cleaned_markdown):
   client = openai.OpenAI(
     base_url = "https://api.endpoints.anyscale.com/v1",
