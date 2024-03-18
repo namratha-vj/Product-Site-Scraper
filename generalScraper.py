@@ -3,6 +3,10 @@ from bs4 import BeautifulSoup, Comment
 from markdownify import MarkdownConverter
 import re
 import openai
+import os
+from dotenv import load_dotenv
+load_dotenv()
+api_key = os.getenv("API_KEY")
 
 def gets_soup(url):
     response = requests.get(url)
@@ -57,7 +61,7 @@ def html_to_clean_markdown(html_text):
 def llm_output(cleaned_markdown):
   client = openai.OpenAI(
     base_url = "https://api.endpoints.anyscale.com/v1",
-    api_key = "esecret_5yiyggr9y9ll43yrif2ewgkcq7")
+    api_key = API_KEY)
 
   # Note: not all arguments are currently supported and will be ignored by the backend.
   chat_completion = client.chat.completions.create(
