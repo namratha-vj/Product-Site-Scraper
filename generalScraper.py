@@ -96,6 +96,7 @@ def llm_output(cleaned_markdown):
 def main(url):
     soup = gets_soup(url)
     cleaned_html = clean_html(soup)
+    print(cleaned_html)
     token_count = count_tokens(cleaned_html)
     print(f"Number of tokens in the cleaned HTML: {token_count}")
     cleaned_markdown = html_to_clean_markdown(cleaned_html)
