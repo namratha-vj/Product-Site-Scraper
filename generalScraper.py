@@ -1,9 +1,12 @@
-import requests
-from bs4 import BeautifulSoup, Comment
-from markdownify import MarkdownConverter
 import re
 import openai
 import os
+import json
+import csv
+
+import requests
+from bs4 import BeautifulSoup, Comment
+from markdownify import MarkdownConverter
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -15,15 +18,14 @@ api_key = os.getenv("API_KEY")
 def get_soup(url, use_selenium=False):
     try:
         if use_selenium:
-            # Configure Selenium options
             driver = webdriver.Chrome()
             driver.get(url)
-            driver.implicitly_wait(10)  # Wait for up to 10 seconds for page to load
+            driver.implicitly_wait(10)
             html = driver.page_source
-            driver.quit()  # Close the browser
+            driver.quit()
         else:
             response = requests.get(url)
-            response.raise_for_status()  # Raise an exception for non-2xx status codes
+            response.raise_for_status()
             html = response.content
 
         soup = BeautifulSoup(html, 'html.parser')
@@ -34,7 +36,6 @@ def get_soup(url, use_selenium=False):
 
 
 def clean_html(soup):
-    # No need to re-parse the soup object with BeautifulSoup
     if soup.head:
         soup.head.decompose()
     for script_or_style in soup.find_all(["script", "style"]):
@@ -45,7 +46,7 @@ def clean_html(soup):
     for comment in comments:
         comment.extract()
 
-    unwanted_attributes = ["class", "id", "style", "onclick", "onerror", "onload"]
+    unwanted_attributes = ["class", "id", "onclick", "onerror", "onload"]
     for tag in soup.find_all():
         for attribute in list(tag.attrs):
             if attribute.startswith(("data-", "aria-", "on")) or attribute in unwanted_attributes:
@@ -76,11 +77,15 @@ def html_to_clean_markdown(html_text):
 
 
 def llm_output(cleaned_markdown):
+    system_propt = """
+    You are a helpful assistant that extracts product information from provided text and outputs the details in JSON format. 
+    The JSON object should contain the following fields: product_title, description (complete details about the product), vendor, type (category of the product), color, size, and price. 
+    If any of the fields cannot be determined from the given text, leave them blank. Focus on accurately extracting all available product details.
+    """
     client = openai.OpenAI(
         base_url="https://api.endpoints.anyscale.com/v1",
         api_key=api_key)
 
-    # Note: not all arguments are currently supported and will be ignored by the backend.
     chat_completion = client.chat.completions.create(
         model="mistralai/Mixtral-8x7B-Instruct-v0.1",
         messages=[
@@ -93,7 +98,7 @@ def llm_output(cleaned_markdown):
                 "type": "object",
                 "properties": {
                     "product_title": {"type": "string"},
-                    "product_description": {"type": "string"},
+                    "description": {"type": "string"},
                     "vendor": {"type": "string"},
                     "type": {"type": "string"},
                     "color": {"type": "string"},
@@ -110,18 +115,29 @@ def llm_output(cleaned_markdown):
     return llmoutput
 
 
+def write_to_csv(llmoutput, filename):
+    data = json.loads(llmoutput)
+    with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
+        fieldnames = ['product_title', 'description', 'vendor', 'type', 'color', 'size', 'price']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerow(data)
+
+    print(f"Data written to {filename}")
+
+
 def main(url):
-    soup = get_soup(url, use_selenium=True)
+    soup = get_soup(url, use_selenium=False)
     cleaned_html = clean_html(soup)
-    print(cleaned_html)
+    # print(cleaned_html)
     token_count = count_tokens(cleaned_html)
     print(f"Number of tokens in the cleaned HTML: {token_count}")
     cleaned_markdown = html_to_clean_markdown(cleaned_html)
     llm_response = llm_output(cleaned_markdown)
     print("LLM Response:", llm_response)
+    write_to_csv(llm_response, 'rawdata/product_info.csv')
 
 
 if __name__ == "__main__":
-    # Example URL - replace this with any URL you want to process
-    url = 'https://www.thesouledstore.com/product/black-hoodie-women-oversized-hoodie?gte=2'
+    url = 'https://www.gifthampersuk.co.uk/chocolate-mountain-gift-hamper-uk'
     main(url)
