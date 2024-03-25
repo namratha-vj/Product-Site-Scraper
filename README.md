@@ -20,12 +20,12 @@ Image Upload Search: Users can upload an image to search for visually similar im
 # Requirements
 Before you begin, ensure you have the following installed:
 
-Python 3.8+
-Streamlit
-OpenCLIP (and its dependencies)
-ChromaDB
-NumPy
-PIL
+- Python 3.8+
+- Streamlit
+- OpenCLIP (and its dependencies)
+- ChromaDB 
+- NumPy 
+- PIL
 You can install most of these dependencies using pip. For specific installation instructions for OpenCLIP and ChromaDB, refer to their respective documentation.
 
 ## Setup
@@ -52,7 +52,7 @@ To start the web interface, run the following command in your terminal:
 ```bash
 streamlit run simpleUI.py
 ```
-
+### Make sure to create a folder named queryImg in the same directory as the script to store the uploaded images.
 This command will start a local server and open the web interface in your default browser. You can now search for images using text queries, URIs, or by uploading images.
 
 ## How It Works
