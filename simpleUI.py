@@ -38,7 +38,7 @@ def display_search_results(results, n_results):
 
 def handle_text_search(query_text, multimodal_db, n_results=3):
     if query_text:
-        st.write(f'Searching for: {query_text}')
+        st.write(f'Search Results for: **{query_text}**')
         results = multimodal_db.query(
             query_texts=[query_text],
             n_results=n_results,
@@ -51,27 +51,21 @@ def handle_uri_search(query_uri, multimodal_db, n_results=3):
     if query_uri:
         st.write(f'Searching for: {query_uri}')
         st.image(query_uri, caption='Query Image', width=200)
-        uri = query_uri.split("/")[1]
-        code = uri.split("(")[0].replace(" ", "")
-        st.write(f'Code: {code}')
         results = multimodal_db.query(
             query_uris=[query_uri],
             n_results=n_results,
             include=['documents', 'distances', 'metadatas', 'data', 'uris'],
-            where={'filename': {'$ne': code}}
         )
         display_search_results(results, n_results)
 
 
 def handle_image_search(query_image, multimodal_db, n_results=3):
-    if query_image:
-        st.write(f'Searching for: {query_image}')
-        results = multimodal_db.query(
-            query_images=[query_image],
-            n_results=n_results,
-            include=['documents', 'distances', 'metadatas', 'data', 'uris'],
-        )
-        display_search_results(results, n_results)
+    results = multimodal_db.query(
+        query_images=[query_image],
+        n_results=n_results,
+        include=['documents', 'distances', 'metadatas', 'data', 'uris'],
+    )
+    display_search_results(results, n_results)
 
 
 def save_uploadedfile(uploadedfile, file_name):
@@ -101,9 +95,9 @@ def main():
     if option == 'Search by Image':
         query_image = st.file_uploader('Upload an image to search for:', type=['jpg', 'jpeg', 'png'])
         if query_image:
-            save_uploadedfile(query_image, file_name="query_img.jpg")
-            query_image_uri = "queryImg/query_img.jpg"
-            handle_uri_search(query_image_uri, multimodal_db, n_results=n_results)
+            st.image(query_image, caption='Query Image', width=200)
+            image = np.array(Image.open(query_image))
+            handle_image_search(image, multimodal_db, n_results=n_results)
 
 
 if __name__ == "__main__":
