@@ -139,5 +139,5 @@ def main(url):
 
 
 if __name__ == "__main__":
-    url = 'https://www.gifthampersuk.co.uk/chocolate-mountain-gift-hamper-uk'
+    url = 'https://www.snitch.co.in/products/waffle-grid-white-shirt?variant=44034346877090'
     main(url)
