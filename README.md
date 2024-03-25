@@ -8,6 +8,49 @@ this file has the code to convert the json of a product to an individual csv fil
 
 `jsonToCSV.ipynb` uses `individualScraper.py` to scrape all the contents of a product page.
 
+# Vector Database Setup and Querying with ChromaDB
+
+This guide outlines the process of setting up a multimodal vector database using `chromadb`, including adding images, updating records, and querying the database. The process involves creating a persistent database, managing collections, and querying them based on text and images.
+
+## Prerequisites
+
+Before you start, make sure you have the following installed:
+- Python 3.x
+- chromadb
+- PIL (Python Imaging Library)
+- matplotlib
+
+You can install the required libraries using pip:
+
+```bash
+pip install chromadb pillow matplotlib
+```
+## Setting Up the Vector Database
+
+### 1. Initialize the Persistent Client
+
+Start by initializing the `chromadb` persistent client with the path to your vector database:
+
+
+### 2. Create a Collection with an Embedding Function
+
+Instantiate the necessary embedding function and data loader, then create a new collection in your database:
+
+## Adding and Updating Records
+
+To add or update records in your collection:
+
+### 1. Prepare Image Files
+
+Filter for `.jpg` images in a specified directory:
+
+### 2. Update Records with Metadata
+
+Loop through the images, extracting metadata and updating the database records:
+
+Now u can query the database.
+
+
 
 # Image Search Engine with Streamlit, OpenCLIP, and ChromaDB
 This Python script powers a simple yet effective image search engine using Streamlit for the web interface, OpenCLIP for image and text embeddings, and ChromaDB for persistent vector storage and querying. It allows users to search for images using text queries, URIs, or directly uploading images.
