@@ -127,7 +127,7 @@ def write_to_csv(llmoutput, filename):
 
 
 def main(url):
-    soup = get_soup(url, use_selenium=False)
+    soup = get_soup(url, use_selenium=True)
     cleaned_html = clean_html(soup)
     # print(cleaned_html)
     token_count = count_tokens(cleaned_html)
@@ -139,5 +139,5 @@ def main(url):
 
 
 if __name__ == "__main__":
-    url = 'https://www.snitch.co.in/products/waffle-grid-white-shirt?variant=44034346877090'
+    url = 'https://shop.myharvestfarms.com/product/pure-a2-cow-ghee/'
     main(url)
