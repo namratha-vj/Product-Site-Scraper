@@ -1,14 +1,14 @@
-import re
 import os
 import json
 import csv
 import requests
-from bs4 import BeautifulSoup, Comment
+from bs4 import BeautifulSoup
 from markdownify import MarkdownConverter
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import openai
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Load environment variables
 load_dotenv()
@@ -28,10 +28,9 @@ def get_soup(url, use_selenium=False):
             response = requests.get(url)
             response.raise_for_status()
             html = response.content
-        soup = BeautifulSoup(html, 'html.parser')
-        return soup
+        return BeautifulSoup(html, 'html.parser')
     except Exception as e:
-        print(f"An error occurred while retrieving URL {url}: {e}")
+        print(f"Error retrieving URL {url}: {e}")
         return None
 
 def clean_html(soup):
@@ -57,12 +56,6 @@ def clean_html(soup):
         for tag in soup.find_all(tag_name):
             tag.unwrap()
     return soup.prettify()
-
-def count_tokens(cleaned_html):
-    if cleaned_html is None:
-        return 0
-    tokens = cleaned_html.split()
-    return len(tokens)
 
 def html_to_clean_markdown(html_text):
     if not html_text:
@@ -110,38 +103,36 @@ def llm_output(cleaned_markdown):
 
     return llmoutput
 
-def append_to_csv(llmoutput, filename):
-    data = json.loads(llmoutput)
-    if not data:
-        print("No data to append.")
-        return
+def append_to_csv(data, filename='product_info.csv'):
     with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
         fieldnames = ['product_title', 'description', 'vendor', 'type', 'color', 'size', 'price']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writerow(data)
-    print(f"Data appended to {filename}")
 
 def process_url(url):
-    print(f"Processing URL: {url}")
     soup = get_soup(url, use_selenium=True)
     if soup is None:
         return
     cleaned_html = clean_html(soup)
-    if cleaned_html is None:
-        return
-    token_count = count_tokens(cleaned_html)
-    print(f"Number of tokens in the cleaned HTML: {token_count}")
     cleaned_markdown = html_to_clean_markdown(cleaned_html)
     llm_response = llm_output(cleaned_markdown)
-    print("LLM Response:", llm_response)
-    append_to_csv(llm_response, 'product_info.csv')
+    return json.loads(llm_response)
 
-def process_urls(filename):
-    with open(filename, 'r') as file:
-        urls = file.readlines()
-    for url in urls:
-        process_url(url.strip())
+def main(urls_file, num_workers=10):
+    with open(urls_file, 'r') as file:
+        urls = [url.strip() for url in file.readlines()]
+
+    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        future_to_url = {executor.submit(process_url, url): url for url in urls}
+        for future in as_completed(future_to_url):
+            url = future_to_url[future]
+            try:
+                data = future.result()
+                append_to_csv(data)
+                print(f"Data from {url} appended to CSV.")
+            except Exception as e:
+                print(f"Error processing URL {url}: {e}")
 
 if __name__ == "__main__":
-    urls_file = 'urls.txt'  # The file containing URLs, one per line
-    process_urls(urls_file)
+    urls_file = 'urls.txt'  # File containing one URL per line
+    main(urls_file)
